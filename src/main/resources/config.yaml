@@ -1,0 +1,21 @@
+# Całkowita liczba kas w supermarkecie
+liczbaKas: 14
+# Minimalna liczba zawsze otwartych kas
+minLiczbaKasOtwartych: 2
+# Na ilu klientów K powinno przypadać jedno stanowisko kasowe
+liczbaKlientowNaKase: 5
+
+# Tworzenie klientów przy pomocy rozkładu Poissona
+# Średnia liczba klientów przybywających do sklepu na sekundę
+lambdaPoissonNaSekunde: 1.5
+
+# Przedział czasowy w ms chodzenia klientów po sklepie
+minCzasZakupow: 3000
+maxCzasZakupow: 5000
+
+# Przedział czasowy w ms obsługi klienta przy kasie
+minCzasObslugi: 2000
+maxCzasObslugi: 5000
+
+# Czas, przez który sklep jest otwarty
+czasTrwaniaSymulacji: 10
