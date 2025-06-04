@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Supermarket implements Klient.PowiadomienieSupermarketu {
 
+    private final Semaphore semZmianaStanu = new Semaphore(0);
+    public Semaphore stateSem() {return semZmianaStanu;}
+
     private final KonfiguracjaSymulacji cfg;
 
     private final List<StanowiskoKasowe> stanowiska = new ArrayList<>();
@@ -32,7 +35,7 @@ public class Supermarket implements Klient.PowiadomienieSupermarketu {
         this.pulaStanowisk = Executors.newFixedThreadPool(cfg.liczbaKas());
 
         for (int i = 0; i < cfg.liczbaKas(); i++) {
-            stanowiska.add(new StanowiskoKasowe(i + 1));
+            stanowiska.add(new StanowiskoKasowe(i + 1, semZmianaStanu));
         }
     }
 
@@ -114,6 +117,7 @@ public class Supermarket implements Klient.PowiadomienieSupermarketu {
         try {
             mutexWSklepiePozaKolejka.acquire();
             wSklepiePozaKolejka.remove(klient);
+            semZmianaStanu.release();
         } catch (InterruptedException ignored) {
         } finally {
             mutexWSklepiePozaKolejka.release();
@@ -136,6 +140,7 @@ public class Supermarket implements Klient.PowiadomienieSupermarketu {
             StanowiskoKasowe sk = stanowiska.get(idKolejnejKasy);
             if (!sk.pobierzStanKasy()) {
                 sk.otworz();
+                semZmianaStanu.release();
                 pulaStanowisk.submit(sk);
                 System.out.println("Kasa " + sk.id() + " zostaje otwarta");
                 break;
@@ -149,6 +154,7 @@ public class Supermarket implements Klient.PowiadomienieSupermarketu {
                 .findFirst()
                 .ifPresent(d -> {
                     d.oznaczDoZamkniecia();
+                    semZmianaStanu.release();
                     System.out.println("Kasa " + d.id() + " do zamknięcia");
                 });
     }
@@ -162,6 +168,7 @@ public class Supermarket implements Klient.PowiadomienieSupermarketu {
         try {
             mutexWSklepiePozaKolejka.acquire();
             wSklepiePozaKolejka.add(k);
+            semZmianaStanu.release();
         } catch (InterruptedException ignored) {
         } finally {
             mutexWSklepiePozaKolejka.release();

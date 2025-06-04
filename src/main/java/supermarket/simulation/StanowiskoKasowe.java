@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class StanowiskoKasowe implements Runnable {
 
     private final int id; // Numer kasy
+    private final Semaphore wake;
 
     private final List<Klient> kolejka = new LinkedList<>(); // Lista klientów czekających na obsługę
 
@@ -18,9 +19,11 @@ public class StanowiskoKasowe implements Runnable {
     private final AtomicBoolean czyOtwarta = new AtomicBoolean(false); // Flaga okreslająca, czy kasa przyjmuje nowych klientów
 
     // Konstruktor ustawiający numer kasy
-    public StanowiskoKasowe(int id) {
+    public StanowiskoKasowe(int id, Semaphore wake) {
         this.id = id;
+        this.wake = wake; // Danie dostępu do semafora, który budzi kierownika
     }
+
 
     public int id() { return id; }
 
@@ -45,6 +48,8 @@ public class StanowiskoKasowe implements Runnable {
     private final AtomicBoolean obsluga = new AtomicBoolean(false);
     public boolean czyObsluguje() { return obsluga.get(); }
 
+
+
     @Override
     public void run() {
         try {
@@ -63,9 +68,12 @@ public class StanowiskoKasowe implements Runnable {
                 Thread.sleep(k.czasObslugi()); // Czas obsługi klienta
                 obsluga.set(false); // Zakończenie obsługi klienta
 
+                wake.release();
+
                 // Sprawdzenie, czy kasa może zostać zamknięta
-                if (!czyOtwarta.get() && semKolejka.availablePermits() == 0 && czyObsluguje() == false) {
+                if (!czyOtwarta.get() && semKolejka.availablePermits() == 0 && !czyObsluguje()) {
                     System.out.println("Kasa " + id + " zostaje zamknięta");
+                    wake.release();
                     return;
                 }
 

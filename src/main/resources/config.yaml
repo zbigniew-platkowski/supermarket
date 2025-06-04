@@ -18,4 +18,4 @@ minCzasObslugi: 2000
 maxCzasObslugi: 5000
 
 # Czas, przez który sklep jest otwarty
-czasTrwaniaSymulacji: 10
+czasTrwaniaSymulacji: 20

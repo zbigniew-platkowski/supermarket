@@ -1,6 +1,7 @@
 package supermarket.simulation;
 
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 // Wątek kierownika
 public class Kierownik implements Runnable {
@@ -13,12 +14,8 @@ public class Kierownik implements Runnable {
 
     @Override
     public void run() {
+        Semaphore wake = supermarket.stateSem();
         while (!Thread.currentThread().isInterrupted()) {
-            try {
-                Thread.sleep(500);  // Decyzja co pól sekundy
-            } catch (InterruptedException e) {
-                return;
-            }
             
             // Liczba klientow w sklepie
             int liczbaKlientow = supermarket.liczbaKlientowWSklepie();
@@ -40,6 +37,13 @@ public class Kierownik implements Runnable {
             }
 
             supermarket.czyMoznaZamknacSklep();
+
+            try {
+                wake.acquire();
+            }
+            catch (InterruptedException e) {
+                return;
+            }
         }
     }
 }
